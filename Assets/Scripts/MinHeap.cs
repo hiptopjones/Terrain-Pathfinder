@@ -3,17 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MinHeap
+public class MinHeap<T> where T : IComparable<T>
 {
-    private int[] Items { get; set; }
+    private T[] Items { get; set; }
     private int NextIndex { get; set; }
 
     public MinHeap(int maxSize)
     {
-        Items = new int[maxSize];
+        Items = new T[maxSize];
     }
 
-    public void Add(int item)
+    public void Add(T item)
     {
         if (NextIndex >= Items.Length)
         {
@@ -31,7 +31,8 @@ public class MinHeap
             int parentIndex = GetParentIndex(index);
 
             // Exit if no movement required
-            if (item >= Items[parentIndex])
+            //  item >= Items[parentIndex]
+            if (item.CompareTo(Items[parentIndex]) >= 0)
             {
                 break;
             }
@@ -43,14 +44,14 @@ public class MinHeap
         NextIndex++;
     }
 
-    public int RemoveMin()
+    public T RemoveMin()
     {
         if (NextIndex == 0)
         {
             throw new Exception("No items in heap");
         }
 
-        int topItem = Items[0];
+        T minItem = Items[0];
 
         // Move the last item to the top
         int lastIndex = NextIndex - 1;
@@ -67,13 +68,15 @@ public class MinHeap
             int smallestChildIndex = index;
 
             // Is left child valid and smaller than its parent
-            if (leftChildIndex < lastIndex && Items[leftChildIndex] < Items[smallestChildIndex])
+            //                                Items[leftChildIndex] < Items[smallestChildIndex]
+            if (leftChildIndex < lastIndex && Items[leftChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
             {
                 smallestChildIndex = leftChildIndex;
             }
 
             // Is right child valid and smaller than the left child?
-            if (rightChildIndex < lastIndex && Items[rightChildIndex] < Items[smallestChildIndex])
+            //                                 Items[rightChildIndex] < Items[smallestChildIndex]
+            if (rightChildIndex < lastIndex && Items[rightChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
             {
                 smallestChildIndex = rightChildIndex;
             }
@@ -90,7 +93,7 @@ public class MinHeap
 
         NextIndex--;
 
-        return topItem;
+        return minItem;
     }
 
     private int GetParentIndex(int i)
@@ -110,7 +113,7 @@ public class MinHeap
 
     private void SwapItems(int index1, int index2)
     {
-        int item = Items[index1];
+        T item = Items[index1];
         Items[index1] = Items[index2];
         Items[index2] = item;
     }

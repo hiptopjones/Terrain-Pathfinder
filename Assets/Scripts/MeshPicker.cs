@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 // https://docs.unity3d.com/ScriptReference/RaycastHit-triangleIndex.html
 // https://answers.unity.com/questions/1305031/pinpointing-one-vertice-with-raycasthit.html
@@ -116,26 +117,39 @@ public class MeshPicker : MonoBehaviour
         Gizmos.DrawSphere(hoveredVertex, 0.5f);
     }
 
+    public class HeapItem : IComparable<HeapItem>
+    {
+        public int Value { get; set; }
+
+        public int CompareTo(HeapItem other)
+        {
+            return Value.CompareTo(other.Value);
+        }
+    }
+
     private void RunHeapTest()
     {
         System.Random random = new System.Random((int)Time.time);
 
         int maxHeapSize = 10;
-        MinHeap heap = new MinHeap(maxHeapSize);
+        MinHeap<HeapItem> heap = new MinHeap<HeapItem>(maxHeapSize);
 
         int heapSize = random.Next(maxHeapSize + 1); // boundary is exclusive
         for (int i = 0; i < heapSize; i++)
         {
-            int item = random.Next(0, 100);
+            HeapItem item = new HeapItem
+            {
+                Value = random.Next(0, 100)
+            };
             heap.Add(item);
 
-            Debug.Log("Adding item: " + item);
+            Debug.Log("Adding item: " + item.Value);
         }
 
         for (int i = 0; i < heapSize; i++)
         {
-            int item = heap.RemoveMin();
-            Debug.Log("Removing min item: " + item);
+            HeapItem item = heap.RemoveMin();
+            Debug.Log("Removing min item: " + item.Value);
         }
     }
 }
