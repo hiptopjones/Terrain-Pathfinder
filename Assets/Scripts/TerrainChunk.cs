@@ -13,6 +13,9 @@ public class TerrainChunk : MonoBehaviour
     [SerializeField]
     private float heightMultiplier;
 
+    [HideInInspector]
+    public MeshData meshData;
+
     private void Awake()
     {
         float[,] heightMap = new float[noiseMap.width, noiseMap.height];
@@ -27,27 +30,27 @@ public class TerrainChunk : MonoBehaviour
             }
         }
 
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap, heightMultiplier);
+        meshData = MeshGenerator.GenerateTerrainMesh(heightMap, heightMultiplier);
+        UpdateMesh();
+    }
 
-        Mesh mesh = new Mesh();
-        mesh.vertices = meshData.vertices;
-        mesh.triangles = meshData.triangles;
-        mesh.uv = meshData.uv;
+    private void UpdateMesh()
+    {
+        Mesh mesh = new Mesh
+        {
+            vertices = meshData.Vertices,
+            triangles = meshData.Triangles,
+            uv = meshData.Uvs
+        };
         mesh.RecalculateNormals();
 
-        GetComponent<MeshFilter>().sharedMesh = mesh;
-        GetComponent<MeshCollider>().sharedMesh = mesh;
-    }
+        MeshFilter meshFilter = GetComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+        MeshCollider meshCollider = GetComponent<MeshCollider>();
+        meshCollider.sharedMesh = mesh;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        TerrainManager terrainManager = FindObjectOfType<TerrainManager>();
+        terrainManager.AddTerrainChunk(meshCollider, this);
     }
 }

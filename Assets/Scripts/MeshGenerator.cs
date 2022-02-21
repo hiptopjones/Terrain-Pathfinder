@@ -20,7 +20,7 @@ public static class MeshGenerator
             {
                 float heightValue = heightMap[x, y] * heightMultiplier;
 
-                meshData.vertices[vertexIndex] = new Vector3(x, heightValue, y);
+                meshData.Vertices[vertexIndex] = new Vector3(x, heightValue, y);
 
                 // No triangles on the last row/column of vertices
                 if (x < width - 1 && y < height -1)
@@ -28,17 +28,17 @@ public static class MeshGenerator
                     // Consistent triangle winding is important for consistent face culling
 
                     // Left triangle of quad
-                    meshData.triangles[triangleIndex++] = vertexIndex;
-                    meshData.triangles[triangleIndex++] = vertexIndex + width;
-                    meshData.triangles[triangleIndex++] = vertexIndex + width + 1;
+                    meshData.Triangles[triangleIndex++] = vertexIndex;
+                    meshData.Triangles[triangleIndex++] = vertexIndex + width;
+                    meshData.Triangles[triangleIndex++] = vertexIndex + width + 1;
 
                     // Right triangle of quad
-                    meshData.triangles[triangleIndex++] = vertexIndex;
-                    meshData.triangles[triangleIndex++] = vertexIndex + width + 1;
-                    meshData.triangles[triangleIndex++] = vertexIndex + 1;
+                    meshData.Triangles[triangleIndex++] = vertexIndex;
+                    meshData.Triangles[triangleIndex++] = vertexIndex + width + 1;
+                    meshData.Triangles[triangleIndex++] = vertexIndex + 1;
                 }
 
-                meshData.uv[vertexIndex] = new Vector2((float)x / width, (float)y / height);
+                meshData.Uvs[vertexIndex] = new Vector2((float)x / width, (float)y / height);
 
                 vertexIndex++;
             }
