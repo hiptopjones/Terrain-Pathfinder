@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class PathFinder : MonoBehaviour
 {
-    private MinHeap<AStarGraphNode> frontier;
-
     private Vector3 StartVertex { get; set; }
     private Vector3 EndVertex { get; set; }
 
@@ -95,16 +93,16 @@ public class PathFinder : MonoBehaviour
     {
         TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
-        MinHeap<AStarGraphNode> OpenNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);
-        Dictionary<Vector3, AStarGraphNode> ClosedNodes = new Dictionary<Vector3, AStarGraphNode>();
-        Dictionary<Vector3, Vector3> Parents = new Dictionary<Vector3, Vector3>();
+        MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);
+        Dictionary<Vector3, AStarGraphNode> closedNodes = new Dictionary<Vector3, AStarGraphNode>();
+        Dictionary<Vector3, Vector3> parents = new Dictionary<Vector3, Vector3>();
         
-        OpenNodes.Add(GetNode(StartVertex));
+        openNodes.Add(GetNode(StartVertex));
 
         while (true)
         {
-            AStarGraphNode currentNode = OpenNodes.RemoveMin();
-            ClosedNodes[currentNode.Vertex] = currentNode;
+            AStarGraphNode currentNode = openNodes.RemoveMin();
+            closedNodes[currentNode.Vertex] = currentNode;
 
             if (currentNode.Vertex == EndVertex)
             {
@@ -116,7 +114,7 @@ public class PathFinder : MonoBehaviour
                 {
                     path.Add(currentVertex);
                     
-                    if (!Parents.TryGetValue(currentVertex, out currentVertex))
+                    if (!parents.TryGetValue(currentVertex, out currentVertex))
                     {
                         // Make path go from start to end
                         path.Reverse();
@@ -132,7 +130,7 @@ public class PathFinder : MonoBehaviour
                 AStarGraphNode nextNode = GetNode(vertex);
 
                 // Ensure node isn't already in the closed list
-                if (ClosedNodes.ContainsKey(nextNode.Vertex))
+                if (closedNodes.ContainsKey(nextNode.Vertex))
                 {
                     continue;
                 }
@@ -143,10 +141,10 @@ public class PathFinder : MonoBehaviour
 
                 // Add this node for consideration
                 // TODO: Should check if it's already present, and update it instead
-                OpenNodes.Add(nextNode);
+                openNodes.Add(nextNode);
 
                 // Keep track of how we got here
-                Parents[nextNode.Vertex] = currentNode.Vertex;
+                parents[nextNode.Vertex] = currentNode.Vertex;
             }
         }
     }

@@ -22,11 +22,11 @@ public class TerrainGraph
         // Bigger height distances lead to bigger costs
         int cost = 1 + Mathf.RoundToInt(heightDelta * 10);
 
-        //// Avoid water if possible
-        //if (b.y < 0.3)
-        //{
-        //    cost *= 10;
-        //}
+        // Avoid water if possible
+        if (b.y < 0.4)
+        {
+            cost = int.MaxValue;
+        }
 
         return cost;
     }
