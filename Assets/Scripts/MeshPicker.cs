@@ -130,6 +130,6 @@ public class MeshPicker : MonoBehaviour
         }
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(hitTransform.TransformPoint(hitVertex), 0.5f);
+        Gizmos.DrawSphere(hitTransform.TransformPoint(hitVertex), 1f);
     }
 }

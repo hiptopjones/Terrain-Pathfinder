@@ -14,6 +14,10 @@ public class PathFinder : MonoBehaviour
     private bool IsPathStarted { get; set; }
     private bool IsPathEnded { get; set; }
 
+    private List<Vector3> Path { get; set; }
+    private List<Vector3> SmoothedPath { get; set; }
+    private bool IsPathDirty { get; set; }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -29,6 +33,7 @@ public class PathFinder : MonoBehaviour
         MeshData = meshData;
 
         IsPathStarted = true;
+        IsPathDirty = true;
     }
 
     private void OnSecondaryVertexSelected(Vector3 vertexPosition, Transform worldTransform, MeshData meshData)
@@ -38,6 +43,7 @@ public class PathFinder : MonoBehaviour
         MeshData = meshData;
 
         IsPathEnded = true;
+        IsPathDirty = true;
     }
 
     // Update is called once per frame
@@ -54,15 +60,26 @@ public class PathFinder : MonoBehaviour
             WorldTransform.TransformPoint(EndVertex),
             Color.yellow);
 
-        List<Vector3> path = FindPath();
+        if (IsPathDirty)
+        {
+            Path = FindPath();
+            SmoothedPath = SplineSmooth.Smooth(Path);
+            IsPathDirty = false;
+        }
 
-        Vector3 previousVertex = StartVertex;
+        //DrawPath(Path, Color.magenta);
+        DrawPath(SmoothedPath, Color.cyan);
+    }
+
+    private void DrawPath(List<Vector3> path, Color color)
+    {
+        Vector3 previousVertex = path[0];
         foreach (Vector3 currentVertex in path)
         {
             Debug.DrawLine(
-                WorldTransform.TransformPoint(previousVertex),
-                WorldTransform.TransformPoint(currentVertex),
-                Color.magenta);
+                WorldTransform.TransformPoint(previousVertex + Vector3.up * 0.1f),
+                WorldTransform.TransformPoint(currentVertex + Vector3.up * 0.1f),
+                color);
 
             previousVertex = currentVertex;
         }
@@ -73,27 +90,27 @@ public class PathFinder : MonoBehaviour
         if (IsPathStarted)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawSphere(WorldTransform.TransformPoint(StartVertex), 0.5f);
+            Gizmos.DrawSphere(WorldTransform.TransformPoint(StartVertex), 1f);
         }
 
         if (IsPathEnded)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(WorldTransform.TransformPoint(EndVertex), 0.5f);
+            Gizmos.DrawSphere(WorldTransform.TransformPoint(EndVertex), 1f);
         }
     }
 
-    private int GetHeuristic(Vector3 a, Vector3 b)
+    private float GetHeuristic(Vector3 a, Vector3 b)
     {
         // Just uses a Manhattan distance calculation
-        return Mathf.RoundToInt(Mathf.Abs(a.x - b.x) + Mathf.Abs(a.z - b.z));
+        return Mathf.Abs((a - b).magnitude);
     }
 
     private List<Vector3> FindPath()
     {
         TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
-        MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);
+        MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length * 10);
         Dictionary<Vector3, AStarGraphNode> closedNodes = new Dictionary<Vector3, AStarGraphNode>();
         Dictionary<Vector3, Vector3> parents = new Dictionary<Vector3, Vector3>();
         
@@ -160,9 +177,9 @@ public class PathFinder : MonoBehaviour
     public class AStarGraphNode : IComparable<AStarGraphNode>
     {
         public Vector3 Vertex { get; set; }
-        public int HCost { get; set; } // Heuristic - estimate from here to end
-        public int GCost { get; set; } // Cost So Far - cost from start to here
-        public int FCost // HCost + GCost - most efficient path from start to end
+        public float HCost { get; set; } // Heuristic - estimate from here to end
+        public float GCost { get; set; } // Cost So Far - cost from start to here
+        public float FCost // HCost + GCost - most efficient path from start to end
         {
             get
             {
