@@ -3,7 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MinHeap<T> where T : IComparable<T>
+public interface IHeapItem<T> : IComparable<T>
+{
+    // Avoids the cost of finding a random item in the heap
+    int HeapIndex { get; set; }
+}
+
+public class MinHeap<T> where T : IHeapItem<T>
 {
     private T[] Items { get; set; }
     private int NextIndex { get; set; }
@@ -21,13 +27,12 @@ public class MinHeap<T> where T : IComparable<T>
         }
 
         // Add new item to the bottom of the heap
-        int index = NextIndex;
-        Items[index] = item;
+        item.HeapIndex = NextIndex;
+        Items[item.HeapIndex] = item;
         NextIndex++;
 
         // Sort it up into place if necessary
-        SortUp(index);
-
+        SortUp(item.HeapIndex);
     }
 
     public T RemoveMin()
@@ -37,17 +42,23 @@ public class MinHeap<T> where T : IComparable<T>
             throw new Exception("No items in heap");
         }
 
-        T minItem = Items[0];
+        T item = Items[0];
 
         // Move the last item to the top
         int lastIndex = NextIndex - 1;
-        Items[0] = Items[lastIndex];
+        SwapItems(0, lastIndex);
         NextIndex--;
 
         // Sort it down into place if necessary
         SortDown(0);
 
-        return minItem;
+        return item;
+    }
+
+    public void Update(T item)
+    {
+        SortUp(item.HeapIndex);
+        SortDown(item.HeapIndex);
     }
 
     private int GetParentIndex(int i)
@@ -70,6 +81,10 @@ public class MinHeap<T> where T : IComparable<T>
         T item = Items[index1];
         Items[index1] = Items[index2];
         Items[index2] = item;
+
+        // Update embedded index trackers
+        Items[index1].HeapIndex = index1;
+        Items[index2].HeapIndex = index2;
     }
 
     private void SortUp(int index)

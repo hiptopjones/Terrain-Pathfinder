@@ -110,11 +110,13 @@ public class PathFinder : MonoBehaviour
     {
         TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
+        Dictionary<Vector3, AStarGraphNode> allNodes = new Dictionary<Vector3, AStarGraphNode>();
         MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length * 10);
         Dictionary<Vector3, AStarGraphNode> closedNodes = new Dictionary<Vector3, AStarGraphNode>();
         Dictionary<Vector3, Vector3> parents = new Dictionary<Vector3, Vector3>();
-        
-        openNodes.Add(GetNode(StartVertex));
+
+        AStarGraphNode startNode = GetOrCreateNode(allNodes, StartVertex, out _);
+        openNodes.Add(startNode);
 
         while (true)
         {
@@ -143,8 +145,8 @@ public class PathFinder : MonoBehaviour
 
             foreach (Vector3 vertex in terrainGraph.GetNeighbors(currentNode.Vertex))
             {
-                // This will create duplicate objects
-                AStarGraphNode nextNode = GetNode(vertex);
+                bool isNewNode;
+                AStarGraphNode nextNode = GetOrCreateNode(allNodes, vertex, out isNewNode);
 
                 // Ensure node isn't already in the closed list
                 if (closedNodes.ContainsKey(nextNode.Vertex))
@@ -156,9 +158,16 @@ public class PathFinder : MonoBehaviour
                 nextNode.GCost = currentNode.GCost + terrainGraph.GetCost(currentNode.Vertex, nextNode.Vertex);
                 nextNode.HCost = GetHeuristic(nextNode.Vertex, EndVertex);
 
-                // Add this node for consideration
-                // TODO: Should check if it's already present, and update it instead
-                openNodes.Add(nextNode);
+                if (isNewNode)
+                {
+                    // Add this node for consideration
+                    openNodes.Add(nextNode);
+                }
+                else
+                {
+                    // Reorder this node in the open list
+                    openNodes.Update(nextNode);
+                }
 
                 // Keep track of how we got here
                 parents[nextNode.Vertex] = currentNode.Vertex;
@@ -166,16 +175,33 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    private AStarGraphNode GetNode(Vector3 vertex)
+    private AStarGraphNode GetOrCreateNode(Dictionary<Vector3, AStarGraphNode> nodes, Vector3 vertex, out bool isNewNode)
     {
-        return new AStarGraphNode
+        isNewNode = false;
+
+        AStarGraphNode node;
+
+        if (!nodes.TryGetValue(vertex, out node))
         {
-            Vertex = vertex,
-        };
+            node = new AStarGraphNode
+            {
+                Vertex = vertex
+            };
+
+            nodes[vertex] = node;
+            isNewNode = true;
+        }
+
+        Debug.Log("Nodes: " + nodes.Count);
+
+        return node;
     }
 
-    public class AStarGraphNode : IComparable<AStarGraphNode>
+    public class AStarGraphNode : IHeapItem<AStarGraphNode>
     {
+        // IHeapItem
+        public int HeapIndex { get; set; }
+
         public Vector3 Vertex { get; set; }
         public float HCost { get; set; } // Heuristic - estimate from here to end
         public float GCost { get; set; } // Cost So Far - cost from start to here
@@ -187,6 +213,7 @@ public class PathFinder : MonoBehaviour
             }
         }
 
+        // IComparable
         public int CompareTo(AStarGraphNode other)
         {
             return FCost.CompareTo(other.FCost);
