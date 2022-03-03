@@ -20,28 +20,14 @@ public class MinHeap<T> where T : IComparable<T>
             throw new Exception("Max size of heap exceeded");
         }
 
-        int index = NextIndex;
-
         // Add new item to the bottom of the heap
+        int index = NextIndex;
         Items[index] = item;
+        NextIndex++;
 
         // Sort it up into place if necessary
-        while (true)
-        {
-            int parentIndex = GetParentIndex(index);
+        SortUp(index);
 
-            // Exit if no movement required
-            //  item >= Items[parentIndex]
-            if (item.CompareTo(Items[parentIndex]) >= 0)
-            {
-                break;
-            }
-            
-            SwapItems(index, parentIndex);
-            index = parentIndex;
-        }
-
-        NextIndex++;
     }
 
     public T RemoveMin()
@@ -56,42 +42,10 @@ public class MinHeap<T> where T : IComparable<T>
         // Move the last item to the top
         int lastIndex = NextIndex - 1;
         Items[0] = Items[lastIndex];
-
-        int index = 0;
+        NextIndex--;
 
         // Sort it down into place if necessary
-        while (true)
-        {
-            int leftChildIndex = GetLeftChildIndex(index);
-            int rightChildIndex = GetRightChildIndex(index);
-
-            int smallestChildIndex = index;
-
-            // Is left child valid and smaller than its parent
-            //                                Items[leftChildIndex] < Items[smallestChildIndex]
-            if (leftChildIndex < lastIndex && Items[leftChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
-            {
-                smallestChildIndex = leftChildIndex;
-            }
-
-            // Is right child valid and smaller than the left child?
-            //                                 Items[rightChildIndex] < Items[smallestChildIndex]
-            if (rightChildIndex < lastIndex && Items[rightChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
-            {
-                smallestChildIndex = rightChildIndex;
-            }
-
-            // Exit if no movement required
-            if (smallestChildIndex == index)
-            {
-                break;
-            }
-
-            SwapItems(index, smallestChildIndex);
-            index = smallestChildIndex;
-        }
-
-        NextIndex--;
+        SortDown(0);
 
         return minItem;
     }
@@ -116,5 +70,59 @@ public class MinHeap<T> where T : IComparable<T>
         T item = Items[index1];
         Items[index1] = Items[index2];
         Items[index2] = item;
+    }
+
+    private void SortUp(int index)
+    {
+        while (true)
+        {
+            T item = Items[index];
+
+            int parentIndex = GetParentIndex(index);
+
+            // Exit if no movement required
+            //  item >= Items[parentIndex]
+            if (item.CompareTo(Items[parentIndex]) >= 0)
+            {
+                break;
+            }
+
+            SwapItems(index, parentIndex);
+            index = parentIndex;
+        }
+    }
+
+    private void SortDown(int index)
+    {
+        while (true)
+        {
+            int leftChildIndex = GetLeftChildIndex(index);
+            int rightChildIndex = GetRightChildIndex(index);
+
+            int smallestChildIndex = index;
+
+            // Is left child valid and smaller than its parent
+            //                                Items[leftChildIndex] < Items[smallestChildIndex]
+            if (leftChildIndex < NextIndex && Items[leftChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
+            {
+                smallestChildIndex = leftChildIndex;
+            }
+
+            // Is right child valid and smaller than the left child?
+            //                                 Items[rightChildIndex] < Items[smallestChildIndex]
+            if (rightChildIndex < NextIndex && Items[rightChildIndex].CompareTo(Items[smallestChildIndex]) < 0)
+            {
+                smallestChildIndex = rightChildIndex;
+            }
+
+            // Exit if no movement required
+            if (smallestChildIndex == index)
+            {
+                break;
+            }
+
+            SwapItems(index, smallestChildIndex);
+            index = smallestChildIndex;
+        }
     }
 }
