@@ -34,11 +34,14 @@ public class TerrainGraph
         float heightDelta = Mathf.Abs(a.y - b.y);
         float scaledHeightDelta = heightDelta * 10f;
 
-        // Bigger height differences lead to bigger costs
-        float cost = 1 + scaledHeightDelta * scaledHeightDelta * scaledHeightDelta;
+        // Will always involve grid locations of neighbors, so avoid the math
+        float distanceCost = b.x != a.x && b.z != a.z ? 1.4f : 1.0f;
 
-        // TODO: Avoid water if possible
-        return cost;
+        // Bigger height differences lead to significantly bigger costs
+        float heightCost = scaledHeightDelta * scaledHeightDelta * scaledHeightDelta;
+
+        // TODO: Should avoid water if possible
+        return distanceCost + heightCost;
     }
 
     public IEnumerable<Vector3> GetNeighbors(Vector3 position)

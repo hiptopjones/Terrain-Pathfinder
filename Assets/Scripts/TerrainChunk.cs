@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -8,7 +9,13 @@ using UnityEngine;
 public class TerrainChunk : MonoBehaviour
 {
     [SerializeField]
-    private Texture2D noiseMap;
+    private int noiseWidth;
+
+    [SerializeField]
+    private int noiseHeight;
+
+    [SerializeField]
+    private TextAsset heightTable;
 
     [SerializeField]
     private float heightMultiplier;
@@ -18,15 +25,22 @@ public class TerrainChunk : MonoBehaviour
 
     private void Awake()
     {
-        float[,] heightMap = new float[noiseMap.width, noiseMap.height];
+        int width = noiseWidth;
+        int height = noiseHeight;
 
-        Color[] colorMap = noiseMap.GetPixels();
-        for (int y = 0; y < noiseMap.height; y++)
+        float[,] heightMap = new float[width, height];
+
+        string[] lines = heightTable.text.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length != width * height)
         {
-            for (int x = 0; x < noiseMap.width; x++)
+            throw new System.Exception($"Wrong number of lines in height table file - expected: {width * height} actual: {lines.Length}");
+        }
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
             {
-                // R, G, B change uniformly when lerping from black to white, so just pick one to inverse lerp
-                heightMap[x, y] = Mathf.Clamp01(Mathf.InverseLerp(Color.black.r, Color.white.r, colorMap[y * noiseMap.width + x].r));
+                heightMap[x, y] = float.Parse(lines[y * width + x]);
             }
         }
 

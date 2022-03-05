@@ -67,8 +67,8 @@ public class PathFinder : MonoBehaviour
             IsPathDirty = false;
         }
 
-        //DrawPath(Path, Color.magenta);
-        DrawPath(SmoothedPath, Color.cyan);
+        DrawPath(Path, Color.magenta);
+        //DrawPath(SmoothedPath, Color.cyan);
     }
 
     private void DrawPath(List<Vector3> path, Color color)
