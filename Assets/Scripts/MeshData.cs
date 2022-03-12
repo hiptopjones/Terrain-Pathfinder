@@ -6,19 +6,26 @@ public class MeshData
 {
     public int Width { get; }
     public int Height { get; }
+
+    public float[,] HeightMap { get; }
+    public float HeightMultiplier { get; }
+
     public Vector3[] Vertices { get; }
     public int[] Triangles { get; }
     public Vector2[] Uvs { get; set; }
 
-    public MeshData(int width, int height)
+    public MeshData(float[,] heightMap, float heightMultiplier)
     {
-        Width = width;
-        Height = height;
+        Width = heightMap.GetLength(0);
+        Height = heightMap.GetLength(1);
 
-        Vertices = new Vector3[width * height];
-        Uvs = new Vector2[width * height];
+        HeightMap = heightMap;
+        HeightMultiplier = heightMultiplier;
+
+        Vertices = new Vector3[Width * Height];
+        Uvs = new Vector2[Width * Height];
 
         // 6 because there are 2 triangles per quad, and each has 3 vertices
-        Triangles = new int[(width - 1) * (height - 1) * 6];
+        Triangles = new int[(Width - 1) * (Height - 1) * 6];
     }
 }

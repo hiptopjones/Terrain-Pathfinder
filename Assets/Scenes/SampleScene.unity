@@ -345,7 +345,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40a240f2b99063946b09dc3c9fe807c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noiseMap: {fileID: 2800000, guid: 866a7a4546e5de44f8075792aa48a23f, type: 3}
+  noiseWidth: 100
+  noiseHeight: 100
+  heightTable: {fileID: 4900000, guid: f030e9f4556b19d4c8facc543f023e4e, type: 3}
   heightMultiplier: 20
 --- !u!23 &1049534829
 MeshRenderer:

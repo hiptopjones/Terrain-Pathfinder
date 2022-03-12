@@ -18,6 +18,8 @@ public class PathFinder : MonoBehaviour
     private List<Vector3> SmoothedPath { get; set; }
     private bool IsPathDirty { get; set; }
 
+    private List<Vector3> ContourVertices { get; set; } = new List<Vector3>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -87,6 +89,12 @@ public class PathFinder : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.yellow;
+        foreach (Vector3 contourVertex in ContourVertices)
+        {
+            Gizmos.DrawSphere(WorldTransform.TransformPoint(contourVertex), 0.25f);
+        }
+
         if (IsPathStarted)
         {
             Gizmos.color = Color.green;
@@ -102,12 +110,15 @@ public class PathFinder : MonoBehaviour
 
     private float GetHeuristic(Vector3 a, Vector3 b)
     {
-        // Just uses a Manhattan distance calculation
+        // Just uses a distance calculation
         return Mathf.Abs((a - b).magnitude);
     }
 
     private List<Vector3> FindPath()
     {
+        NavigationGraph navigationGraph = new NavigationGraph(MeshData, 20);
+        ContourVertices = navigationGraph.GenerateContours();
+
         TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
         Dictionary<Vector3, AStarGraphNode> allNodes = new Dictionary<Vector3, AStarGraphNode>();
