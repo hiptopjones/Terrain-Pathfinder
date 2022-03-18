@@ -1,3 +1,4 @@
+using ceometric.DelaunayTriangulator;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,12 +11,15 @@ public class MeshData
     public float[,] HeightMap { get; }
     public float HeightMultiplier { get; }
 
+    public List<Triangle> DelaunayTriangles { get; }
+
     public Vector3[] Vertices { get; }
     public int[] Triangles { get; }
     public Vector2[] Uvs { get; set; }
 
-    public MeshData(Vector3[] vertices, int[] triangles)
+    public MeshData(List<Triangle> delaunayTriangles, Vector3[] vertices, int[] triangles)
     {
+        DelaunayTriangles = delaunayTriangles;
         Vertices = vertices;
         Triangles = triangles;
     }

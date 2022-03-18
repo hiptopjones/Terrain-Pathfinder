@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class TerrainManager : MonoBehaviour
 {
-    private Dictionary<MeshCollider, TerrainChunk> ColliderTerrainChunkMapping { get; set; } = new Dictionary<MeshCollider, TerrainChunk>();
+    private Dictionary<MeshCollider, MeshData> ColliderTerrainChunkMapping { get; set; } = new Dictionary<MeshCollider, MeshData>();
 
-    public void AddTerrainChunk(MeshCollider meshCollider, TerrainChunk terrainChunk)
+    public void AddMeshData(MeshCollider meshCollider, MeshData meshData)
     {
-        ColliderTerrainChunkMapping[meshCollider] = terrainChunk;
+        ColliderTerrainChunkMapping[meshCollider] = meshData;
     }
 
-    public TerrainChunk GetTerrainChunk(MeshCollider meshCollider)
+    public MeshData GetMeshData(MeshCollider meshCollider)
     {
         return ColliderTerrainChunkMapping[meshCollider];
     }

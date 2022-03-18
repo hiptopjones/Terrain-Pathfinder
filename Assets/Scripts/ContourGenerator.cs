@@ -16,7 +16,7 @@ public class Contour
     public List<Vector3> Points { get; set; } = new List<Vector3>();
 }
 
-public class NavigationGraph
+public class ContourGenerator
 {
     public MeshData MeshData { get; }
 
@@ -26,7 +26,7 @@ public class NavigationGraph
 
     public List<Contour> Contours { get; set; } = new List<Contour>();
 
-    public NavigationGraph(MeshData meshData, int contourCount)
+    public ContourGenerator(MeshData meshData, int contourCount)
     {
         MeshData = meshData;
         ContourCount = contourCount;

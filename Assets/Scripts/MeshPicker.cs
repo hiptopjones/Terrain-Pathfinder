@@ -39,8 +39,7 @@ public class MeshPicker : MonoBehaviour
         }
 
         // Get the original mesh data
-        TerrainChunk terrainChunk = terrainManager.GetTerrainChunk(meshCollider);
-        MeshData meshData = terrainChunk.meshData;
+        MeshData meshData = terrainManager.GetMeshData(meshCollider);
 
         HighlightTriangle(hit, meshData);
 

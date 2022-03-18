@@ -1,12 +1,11 @@
 using ceometric.DelaunayTriangulator;
+using Dcel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter))]
-[RequireComponent(typeof(MeshRenderer))]
 public class PathFinder : MonoBehaviour
 {
     private Vector3 StartVertex { get; set; }
@@ -21,8 +20,6 @@ public class PathFinder : MonoBehaviour
     private List<Vector3> Path { get; set; }
     private List<Vector3> SmoothedPath { get; set; }
     private bool IsPathDirty { get; set; }
-
-    private List<Vector3> ContourVertices { get; set; } = new List<Vector3>();
 
     // Start is called before the first frame update
     void Start()
@@ -74,7 +71,7 @@ public class PathFinder : MonoBehaviour
         }
 
         DrawPath(Path, Color.magenta);
-        //DrawPath(SmoothedPath, Color.cyan);
+        DrawPath(SmoothedPath, Color.cyan);
     }
 
     private void DrawPath(List<Vector3> path, Color color)
@@ -93,12 +90,6 @@ public class PathFinder : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        foreach (Vector3 contourVertex in ContourVertices)
-        {
-            Gizmos.DrawSphere(WorldTransform.TransformPoint(contourVertex), 0.25f);
-        }
-
         if (IsPathStarted)
         {
             Gizmos.color = Color.green;
@@ -118,36 +109,20 @@ public class PathFinder : MonoBehaviour
         return Mathf.Abs(Vector3.Distance(a, b));
     }
 
-    private void GenerateNavigationMesh()
+    private DcelTerrainGraph CreateTerrainGraph(List<Triangle> triangles)
     {
-        NavigationGraph navigationGraph = new NavigationGraph(MeshData, 20);
-        ContourVertices = navigationGraph.GenerateContours();
+        Dictionary<Vector3, Vertex> vertexMapping = DcelGenerator.CreateDcelFromDelaunay(triangles);
 
-        DelaunayTriangulation2d triangulation = new DelaunayTriangulation2d();
-        List<Triangle> triangles = triangulation.Triangulate(
-            ContourVertices.Select(p => new Point(p.x, p.z, p.y)).ToList()); // Swaps y and z for the call to Triangulate
-
-        MeshData meshData = MeshGenerator.GenerateNavigationMesh(triangles);
-
-        Mesh mesh = new Mesh
-        {
-            vertices = meshData.Vertices,
-            triangles = meshData.Triangles,
-        };
-        mesh.RecalculateNormals();
-
-        MeshFilter meshFilter = GetComponent<MeshFilter>();
-        meshFilter.sharedMesh = mesh;
+        DcelTerrainGraph terrainGraph = new DcelTerrainGraph(vertexMapping);
+        return terrainGraph;
     }
-
     private List<Vector3> FindPath()
     {
-        GenerateNavigationMesh();
-
-        TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
+        DcelTerrainGraph terrainGraph = CreateTerrainGraph(MeshData.DelaunayTriangles);
+        //GridTerrainGraph terrainGraph = new GridTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
         Dictionary<Vector3, AStarGraphNode> allNodes = new Dictionary<Vector3, AStarGraphNode>();
-        MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length * 10);
+        MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);
         Dictionary<Vector3, AStarGraphNode> closedNodes = new Dictionary<Vector3, AStarGraphNode>();
         Dictionary<Vector3, Vector3> parents = new Dictionary<Vector3, Vector3>();
 

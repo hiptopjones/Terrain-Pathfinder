@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshData GenerateNavigationMesh(List<Triangle> delauneyTriangles)
+    public static MeshData GenerateNavigationMesh(List<Triangle> delaunayTriangles)
     {
         // Take the 2-D points from the triangle vertices and return them to Vector3 points with height values
         //  - The height data is lost in preparation for triangulation
@@ -21,7 +21,7 @@ public static class MeshGenerator
         // Used to keep track of the index of vertices in case of duplicates
         Dictionary<Vector3, int> vertexIndexes = new Dictionary<Vector3, int>();
 
-        foreach (Triangle triangle in delauneyTriangles)
+        foreach (Triangle triangle in delaunayTriangles)
         {
             Vector3 vertex1 = new Vector3(triangle.Vertex1.X, triangle.Vertex1.Z, triangle.Vertex1.Y); // Swap Y and Z back after triangulation
             int index1;
@@ -30,7 +30,6 @@ public static class MeshGenerator
                 index1 = vertices.Count;
                 vertices.Add(vertex1);
             }
-            triangles.Add(index1);
 
             Vector3 vertex2 = new Vector3(triangle.Vertex2.X, triangle.Vertex2.Z, triangle.Vertex2.Y); // Swap Y and Z back after triangulation
             int index2;
@@ -39,7 +38,6 @@ public static class MeshGenerator
                 index2 = vertices.Count;
                 vertices.Add(vertex2);
             }
-            triangles.Add(index2);
 
             Vector3 vertex3 = new Vector3(triangle.Vertex3.X, triangle.Vertex3.Z, triangle.Vertex3.Y); // Swap Y and Z back after triangulation
             int index3;
@@ -48,10 +46,14 @@ public static class MeshGenerator
                 index3 = vertices.Count;
                 vertices.Add(vertex3);
             }
+
+            // Delaunay triangles are CCW, but Unity wants CW
             triangles.Add(index3);
+            triangles.Add(index2);
+            triangles.Add(index1);
         }
 
-        MeshData meshData = new MeshData(vertices.ToArray(), triangles.ToArray());
+        MeshData meshData = new MeshData(delaunayTriangles, vertices.ToArray(), triangles.ToArray());
         return meshData;
     }
 

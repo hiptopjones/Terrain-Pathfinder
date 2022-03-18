@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 // Credit to Paul Bourke (paul.bourke@uwa.edu.au) for the original Fortran 77 Program.
-// Check out: http://local.wasp.uwa.edu.au/~pbourke/ 
+// Check out: http://paulbourke.net/papers/triangulate/
 // You can use this code however you like providing the above credits remain in tact.
 // First converted to a standalone C# 2.0 library by Morten Nielsen (www.iter.dk)
 // Performance enhanced C# 2.0 library by Christian Stelzl (www.ceometric.com) Sep. 2008

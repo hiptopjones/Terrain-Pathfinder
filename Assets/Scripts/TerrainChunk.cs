@@ -1,6 +1,9 @@
+using ceometric.DelaunayTriangulator;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -20,10 +23,18 @@ public class TerrainChunk : MonoBehaviour
     [SerializeField]
     private float heightMultiplier;
 
-    [HideInInspector]
-    public MeshData meshData;
+    public MeshData TerrainMeshData { get; set; }
+    public MeshData NavigationMeshData { get; set; }
 
     private void Awake()
+    {
+        float[,] heightMap = LoadHeightMap();
+
+        GenerateTerrainMesh(heightMap);
+        GenerateNavigationMesh(TerrainMeshData);
+    }
+
+    private float[,] LoadHeightMap()
     {
         int width = noiseWidth;
         int height = noiseHeight;
@@ -44,11 +55,37 @@ public class TerrainChunk : MonoBehaviour
             }
         }
 
-        meshData = MeshGenerator.GenerateTerrainMesh(heightMap, heightMultiplier);
-        UpdateMesh();
+        return heightMap;
     }
 
-    private void UpdateMesh()
+    private void GenerateTerrainMesh(float[,] heightMap)
+    {
+        // Create the structures for the mesh
+        TerrainMeshData = MeshGenerator.GenerateTerrainMesh(heightMap, heightMultiplier);
+
+        // Convert to a mesh and display
+        //UpdateMesh(TerrainMeshData);
+    }
+
+    private void GenerateNavigationMesh(MeshData meshData)
+    {
+        // Contour the terrain
+        ContourGenerator contourGenerator = new ContourGenerator(meshData, 20);
+        List<Vector3> contourVertices = contourGenerator.GenerateContours();
+
+        // Triangulate the resulting points
+        DelaunayTriangulation2d triangulation = new DelaunayTriangulation2d();
+        List<Triangle> triangles = triangulation.Triangulate(
+            contourVertices.Select(p => new Point(p.x, p.z, p.y)).ToList()); // Swaps y and z for the call to Triangulate
+
+        // Create the structures for the mesh
+        NavigationMeshData = MeshGenerator.GenerateNavigationMesh(triangles);
+
+        // Convert to a mesh and display
+        DisplayMesh(NavigationMeshData);
+    }
+
+    private void DisplayMesh(MeshData meshData)
     {
         Mesh mesh = new Mesh
         {
@@ -65,6 +102,6 @@ public class TerrainChunk : MonoBehaviour
         meshCollider.sharedMesh = mesh;
 
         TerrainManager terrainManager = FindObjectOfType<TerrainManager>();
-        terrainManager.AddTerrainChunk(meshCollider, this);
+        terrainManager.AddMeshData(meshCollider, meshData);
     }
 }

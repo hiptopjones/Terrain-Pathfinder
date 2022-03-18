@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainGraph
+public class GridTerrainGraph
 {
     private int Width { get; }
     private int Height { get; }
@@ -10,7 +10,7 @@ public class TerrainGraph
 
     private Vector3[] Directions { get; }
 
-    public TerrainGraph(int width, int height, Vector3[] vertices)
+    public GridTerrainGraph(int width, int height, Vector3[] vertices)
     {
         Width = width;
         Height = height;
