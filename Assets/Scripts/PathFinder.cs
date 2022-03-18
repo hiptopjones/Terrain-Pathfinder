@@ -1,8 +1,12 @@
+using ceometric.DelaunayTriangulator;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
 public class PathFinder : MonoBehaviour
 {
     private Vector3 StartVertex { get; set; }
@@ -111,13 +115,34 @@ public class PathFinder : MonoBehaviour
     private float GetHeuristic(Vector3 a, Vector3 b)
     {
         // Just uses a distance calculation
-        return Mathf.Abs((a - b).magnitude);
+        return Mathf.Abs(Vector3.Distance(a, b));
+    }
+
+    private void GenerateNavigationMesh()
+    {
+        NavigationGraph navigationGraph = new NavigationGraph(MeshData, 20);
+        ContourVertices = navigationGraph.GenerateContours();
+
+        DelaunayTriangulation2d triangulation = new DelaunayTriangulation2d();
+        List<Triangle> triangles = triangulation.Triangulate(
+            ContourVertices.Select(p => new Point(p.x, p.z, p.y)).ToList()); // Swaps y and z for the call to Triangulate
+
+        MeshData meshData = MeshGenerator.GenerateNavigationMesh(triangles);
+
+        Mesh mesh = new Mesh
+        {
+            vertices = meshData.Vertices,
+            triangles = meshData.Triangles,
+        };
+        mesh.RecalculateNormals();
+
+        MeshFilter meshFilter = GetComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
     }
 
     private List<Vector3> FindPath()
     {
-        NavigationGraph navigationGraph = new NavigationGraph(MeshData, 20);
-        ContourVertices = navigationGraph.GenerateContours();
+        GenerateNavigationMesh();
 
         TerrainGraph terrainGraph = new TerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 

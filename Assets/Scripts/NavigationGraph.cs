@@ -36,7 +36,7 @@ public class NavigationGraph
     {
         RunConrec();
 
-        //return ContourPoints;
+        //return ContourPoints.ToList();
         return Contours.SelectMany(x => x.Points).ToList();
     }
 
@@ -57,6 +57,9 @@ public class NavigationGraph
         ContourPoints.Add(new Vector3((x1 + x2) / 2, z * MeshData.HeightMultiplier, (y1 + y2) / 2));
     }
 
+    // Sweeps the contour points from left to right, spacing the points evenly throughout the contour
+    // This method keeps track of individual contour lines and assigns a point to a line based on proximity
+    // There are cases where this breaks down, but it largely works fine
     private void DetectContours()
     {
         List<Contour> contours = new List<Contour>();
@@ -70,15 +73,15 @@ public class NavigationGraph
             foreach (Contour contour in contours)
             {
                 // Is the current point attached to this contour?
-                if (Mathf.Abs((point - contour.Head).magnitude) < 1)
+                if (Mathf.Abs(Vector3.Distance(contour.Head, point)) < 1)
                 {
                     isExistingContour = true;
                     contour.Head = point;
 
                     // Is the current point far enough from the anchor to create a new anchor?
-                    if (Mathf.Abs((point - contour.Anchor).magnitude) > 2)
+                    if (Mathf.Abs(Vector3.Distance(contour.Anchor, point)) > 2)
                     {
-                        contour.Points.Add(point + Vector3.up * 0.5f); // Shift up to visualize
+                        contour.Points.Add(point);
                         contour.Anchor = point;
                     }
 
@@ -95,7 +98,7 @@ public class NavigationGraph
                     Anchor = point,
                     Head = point,
                 };
-                contour.Points.Add(point + Vector3.up * 0.5f); // Shift up to visualize
+                contour.Points.Add(point);
 
                 contours.Add(contour);
             }

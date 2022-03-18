@@ -14,6 +14,12 @@ public class MeshData
     public int[] Triangles { get; }
     public Vector2[] Uvs { get; set; }
 
+    public MeshData(Vector3[] vertices, int[] triangles)
+    {
+        Vertices = vertices;
+        Triangles = triangles;
+    }
+
     public MeshData(float[,] heightMap, float heightMultiplier)
     {
         Width = heightMap.GetLength(0);
