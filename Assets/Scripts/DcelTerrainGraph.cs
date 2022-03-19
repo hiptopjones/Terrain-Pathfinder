@@ -15,18 +15,20 @@ public class DcelTerrainGraph
 
     public float GetCost(Vector3 a, Vector3 b)
     {
-        float heightDelta = Mathf.Abs(a.y - b.y);
-        float scaledHeightDelta = heightDelta * 10f;
+        float rise = Mathf.Abs(a.y - b.y);
+        float run = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
 
-        float distanceCost = Mathf.Abs(Vector3.Distance(a, b));
+        float slope = rise / run;
+        float scaledSlope = slope * 10;
 
         // Bigger height differences lead to significantly bigger costs
-        float heightCost = scaledHeightDelta * scaledHeightDelta * scaledHeightDelta;
+        float slopeCost = scaledSlope * scaledSlope * scaledSlope;
+        float distanceCost = run * run;
 
-        return distanceCost + heightCost;
+        return distanceCost + slopeCost;
     }
 
-    public IEnumerable<Vector3> GetNeighbors(Vector3 position)
+    public IEnumerable<Vector3> GetNeighbors(Vector3 position, int recurseCount)
     {
         Vertex vertex = VertexMapping[position];
         HalfEdge currentEdge = vertex.IncidentEdge;
@@ -36,7 +38,16 @@ public class DcelTerrainGraph
         // NOTE: This may not enumerate all edges for vertices along the boundary
         while (neighbors.Add(currentEdge.Next.Origin.Coordinates))
         {
-            yield return currentEdge.Next.Origin.Coordinates;
+            Vector3 neighbor = currentEdge.Next.Origin.Coordinates;
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
 
             currentEdge = currentEdge.Twin.Next;
             if (currentEdge == null)

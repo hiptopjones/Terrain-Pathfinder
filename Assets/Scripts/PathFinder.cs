@@ -154,7 +154,8 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
-            foreach (Vector3 vertex in terrainGraph.GetNeighbors(currentNode.Vertex))
+            int recurseCount = 1; // Non-zero means it will also return neighbors of neighbors
+            foreach (Vector3 vertex in terrainGraph.GetNeighbors(currentNode.Vertex, recurseCount))
             {
                 bool isNewNode;
                 AStarGraphNode nextNode = GetOrCreateNode(allNodes, vertex, out isNewNode);
