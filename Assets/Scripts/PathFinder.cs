@@ -118,8 +118,8 @@ public class PathFinder : MonoBehaviour
     }
     private List<Vector3> FindPath()
     {
-        DcelTerrainGraph terrainGraph = CreateTerrainGraph(MeshData.DelaunayTriangles);
-        //GridTerrainGraph terrainGraph = new GridTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
+        //DcelTerrainGraph terrainGraph = CreateTerrainGraph(MeshData.DelaunayTriangles);
+        GridTerrainGraph terrainGraph = new GridTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
 
         Dictionary<Vector3, AStarGraphNode> allNodes = new Dictionary<Vector3, AStarGraphNode>();
         MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);

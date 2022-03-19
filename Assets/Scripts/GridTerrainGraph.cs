@@ -31,20 +31,20 @@ public class GridTerrainGraph
 
     public float GetCost(Vector3 a, Vector3 b)
     {
-        float heightDelta = Mathf.Abs(a.y - b.y);
-        float scaledHeightDelta = heightDelta * 10f;
+        float rise = Mathf.Abs(a.y - b.y);
+        float run = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
 
-        // Will always involve grid locations of neighbors, so avoid the math
-        float distanceCost = b.x != a.x && b.z != a.z ? 1.4f : 1.0f;
+        float slope = rise / run;
+        float scaledSlope = slope * 10;
 
         // Bigger height differences lead to significantly bigger costs
-        float heightCost = scaledHeightDelta * scaledHeightDelta * scaledHeightDelta;
+        float slopeCost = scaledSlope * scaledSlope * scaledSlope;
+        float distanceCost = run * run;
 
-        // TODO: Should avoid water if possible
-        return distanceCost + heightCost;
+        return distanceCost + slopeCost;
     }
 
-    public IEnumerable<Vector3> GetNeighbors(Vector3 position)
+    public IEnumerable<Vector3> GetNeighbors(Vector3 position, int recurseCount)
     {
         // X and Z are the coordinates of the height map, Y is the height value
         int index = Mathf.RoundToInt(position.z) * Width + Mathf.RoundToInt(position.x);
@@ -58,25 +58,62 @@ public class GridTerrainGraph
         if (position.x > 0)
         {
             int leftIndex = index - 1;
-            yield return Vertices[leftIndex];
+            Vector3 neighbor = Vertices[leftIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount -1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.x < Width - 1)
         {
             int rightIndex = index + 1;
-            yield return Vertices[rightIndex];
+            Vector3 neighbor = Vertices[rightIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.z > 0)
         {
             int topIndex = index - Width;
-            yield return Vertices[topIndex];
+            Vector3 neighbor = Vertices[topIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.z < Height - 1)
         {
             int bottomIndex = index + Width;
-            yield return Vertices[bottomIndex];
+            Vector3 neighbor = Vertices[bottomIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
+
         }
 
         // DIAGONAL DIRECTIONS
@@ -84,26 +121,61 @@ public class GridTerrainGraph
         if (position.x > 0 && position.z > 0)
         {
             int topleftIndex = index - Width - 1;
-            yield return Vertices[topleftIndex];
+            Vector3 neighbor = Vertices[topleftIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.x < Width - 1 && position.z > 0)
         {
             int topRightIndex = index - Width + 1;
-            yield return Vertices[topRightIndex];
+            Vector3 neighbor = Vertices[topRightIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.x > 0 && position.z < Height - 1)
         {
             int bottomLeftIndex = index + Width - 1;
-            yield return Vertices[bottomLeftIndex];
+            Vector3 neighbor = Vertices[bottomLeftIndex];
+            yield return neighbor;
+
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
         }
 
         if (position.x < Width - 1 && position.z < Height - 1)
         {
             int bottomIndex = index + Width + 1;
-            yield return Vertices[bottomIndex];
-        }
+            Vector3 neighbor = Vertices[bottomIndex];
+            yield return neighbor;
 
+            if (recurseCount > 0)
+            {
+                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                {
+                    yield return extendedNeighbor;
+                }
+            }
+        }
     }
 }
