@@ -17,11 +17,12 @@ public class MeshData
     public int[] Triangles { get; }
     public Vector2[] Uvs { get; set; }
 
-    public MeshData(List<Triangle> delaunayTriangles, Vector3[] vertices, int[] triangles)
+    public MeshData(List<Triangle> delaunayTriangles, Vector3[] vertices, int[] triangles, Vector2[] uvs)
     {
         DelaunayTriangles = delaunayTriangles;
         Vertices = vertices;
         Triangles = triangles;
+        Uvs = uvs;
     }
 
     public MeshData(float[,] heightMap, float heightMultiplier)

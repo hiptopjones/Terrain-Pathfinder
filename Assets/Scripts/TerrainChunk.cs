@@ -31,7 +31,7 @@ public class TerrainChunk : MonoBehaviour
         float[,] heightMap = LoadHeightMap();
 
         GenerateTerrainMesh(heightMap);
-        //GenerateNavigationMesh(TerrainMeshData);
+        GenerateNavigationMesh(TerrainMeshData);
     }
 
     private float[,] LoadHeightMap()
@@ -79,7 +79,7 @@ public class TerrainChunk : MonoBehaviour
             contourVertices.Select(p => new Point(p.x, p.z, p.y)).ToList()); // Swaps y and z for the call to Triangulate
 
         // Create the structures for the mesh
-        NavigationMeshData = MeshGenerator.GenerateNavigationMesh(triangles);
+        NavigationMeshData = MeshGenerator.GenerateNavigationMesh(meshData.Width, meshData.Height, triangles);
 
         // Convert to a mesh and display
         DisplayMesh(NavigationMeshData);

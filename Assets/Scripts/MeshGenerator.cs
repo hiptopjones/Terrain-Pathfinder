@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshData GenerateNavigationMesh(List<Triangle> delaunayTriangles)
+    public static MeshData GenerateNavigationMesh(int width, int height, List<Triangle> delaunayTriangles)
     {
         // Take the 2-D points from the triangle vertices and return them to Vector3 points with height values
         //  - The height data is lost in preparation for triangulation
@@ -53,7 +53,15 @@ public static class MeshGenerator
             triangles.Add(index1);
         }
 
-        MeshData meshData = new MeshData(delaunayTriangles, vertices.ToArray(), triangles.ToArray());
+        List<Vector2> uvs = new List<Vector2>();
+        foreach (Vector3 vertex in vertices)
+        {
+            Vector2 uv = new Vector2(vertex.x / width, vertex.z / height);
+            uvs.Add(uv);
+        }
+
+        MeshData meshData = new MeshData(delaunayTriangles, vertices.ToArray(), triangles.ToArray(), uvs.ToArray());
+
         return meshData;
     }
 
