@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridTerrainGraph
+public class GridTerrainGraph : ITerrainGraph
 {
     private int Width { get; }
     private int Height { get; }
@@ -44,7 +44,13 @@ public class GridTerrainGraph
         return distanceCost + slopeCost;
     }
 
-    public IEnumerable<Vector3> GetNeighbors(Vector3 position, int recurseCount)
+    public IEnumerable<Vector3> GetNeighborVertices(Vector3 position)
+    {
+        int recurseCount = 0; // Non-zero means it will also return neighbors of neighbors
+        return GetNeighborVertices(position, recurseCount);
+    }
+
+    private IEnumerable<Vector3> GetNeighborVertices(Vector3 position, int recurseCount)
     {
         // X and Z are the coordinates of the height map, Y is the height value
         int index = Mathf.RoundToInt(position.z) * Width + Mathf.RoundToInt(position.x);
@@ -63,7 +69,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount -1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount -1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -78,7 +84,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -93,7 +99,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -108,7 +114,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -126,7 +132,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -141,7 +147,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -156,7 +162,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }
@@ -171,7 +177,7 @@ public class GridTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }

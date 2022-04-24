@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class DcelTerrainGraph
+public class DcelTerrainGraph : ITerrainGraph
 {
     private Dictionary<Vector3, Vertex> VertexMapping { get;  }
 
@@ -28,7 +28,13 @@ public class DcelTerrainGraph
         return distanceCost + slopeCost;
     }
 
-    public IEnumerable<Vector3> GetNeighbors(Vector3 position, int recurseCount)
+    public IEnumerable<Vector3> GetNeighborVertices(Vector3 position)
+    {
+        int recurseCount = 0; // Non-zero means it will also return neighbors of neighbors
+        return GetNeighborVertices(position, recurseCount);
+    }
+
+    private IEnumerable<Vector3> GetNeighborVertices(Vector3 position, int recurseCount)
     {
         Vertex vertex = VertexMapping[position];
         HalfEdge currentEdge = vertex.IncidentEdge;
@@ -43,7 +49,7 @@ public class DcelTerrainGraph
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighbors(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
                 {
                     yield return extendedNeighbor;
                 }

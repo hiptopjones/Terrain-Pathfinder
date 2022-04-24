@@ -31,7 +31,7 @@ public class TerrainChunk : MonoBehaviour
         float[,] heightMap = LoadHeightMap();
 
         GenerateTerrainMesh(heightMap);
-        GenerateNavigationMesh(TerrainMeshData);
+        //GenerateNavigationMesh(TerrainMeshData);
     }
 
     private float[,] LoadHeightMap()

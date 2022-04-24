@@ -71,7 +71,7 @@ public class PathFinder : MonoBehaviour
         }
 
         DrawPath(Path, Color.magenta);
-        DrawPath(SmoothedPath, Color.cyan);
+        //DrawPath(SmoothedPath, Color.cyan);
     }
 
     private void DrawPath(List<Vector3> path, Color color)
@@ -101,6 +101,15 @@ public class PathFinder : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(WorldTransform.TransformPoint(EndVertex), 1f);
         }
+
+        if (Path != null)
+        {
+            foreach (Vector3 currentVertex in Path)
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawSphere(WorldTransform.TransformPoint(currentVertex), 0.2f);
+            }
+        }
     }
 
     private float GetHeuristic(Vector3 a, Vector3 b)
@@ -109,17 +118,11 @@ public class PathFinder : MonoBehaviour
         return Mathf.Abs(Vector3.Distance(a, b));
     }
 
-    private DcelTerrainGraph CreateTerrainGraph(List<Triangle> triangles)
-    {
-        Dictionary<Vector3, Vertex> vertexMapping = DcelGenerator.CreateDcelFromDelaunay(triangles);
-
-        DcelTerrainGraph terrainGraph = new DcelTerrainGraph(vertexMapping);
-        return terrainGraph;
-    }
     private List<Vector3> FindPath()
     {
-        DcelTerrainGraph terrainGraph = CreateTerrainGraph(MeshData.DelaunayTriangles);
-        //GridTerrainGraph terrainGraph = new GridTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
+        //ITerrainGraph terrainGraph = new DcelTerrainGraph(DcelGenerator.CreateDcelFromDelaunay(MeshData.DelaunayTriangles));
+        //ITerrainGraph terrainGraph = new GridTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices);
+        ITerrainGraph terrainGraph = new AnisotropicTerrainGraph(MeshData.Width, MeshData.Height, MeshData.Vertices, 5);
 
         Dictionary<Vector3, AStarGraphNode> allNodes = new Dictionary<Vector3, AStarGraphNode>();
         MinHeap<AStarGraphNode> openNodes = new MinHeap<AStarGraphNode>(MeshData.Vertices.Length);
@@ -154,8 +157,7 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
-            int recurseCount = 1; // Non-zero means it will also return neighbors of neighbors
-            foreach (Vector3 vertex in terrainGraph.GetNeighbors(currentNode.Vertex, recurseCount))
+            foreach (Vector3 vertex in terrainGraph.GetNeighborVertices(currentNode.Vertex))
             {
                 bool isNewNode;
                 AStarGraphNode nextNode = GetOrCreateNode(allNodes, vertex, out isNewNode);
