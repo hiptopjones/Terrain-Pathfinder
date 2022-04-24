@@ -12,6 +12,7 @@ public class MeshPicker : MonoBehaviour
 
     public Action<Vector3, Transform, MeshData> OnPrimaryVertexSelected;
     public Action<Vector3, Transform, MeshData> OnSecondaryVertexSelected;
+    public Action OnSelectedVerticesCleared;
     public Action<Vector3, Transform, MeshData> OnVertexHovered;
 
     private TerrainManager terrainManager;
@@ -64,6 +65,13 @@ public class MeshPicker : MonoBehaviour
             if (OnSecondaryVertexSelected != null)
             {
                 OnSecondaryVertexSelected(hitVertex, hitTransform, meshData);
+            }
+        }
+        else if (Input.GetMouseButtonDown(2)) // Middle Button
+        {
+            if (OnSelectedVerticesCleared != null)
+            {
+                OnSelectedVerticesCleared();
             }
         }
 

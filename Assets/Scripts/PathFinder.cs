@@ -27,6 +27,7 @@ public class PathFinder : MonoBehaviour
         MeshPicker meshPicker = FindObjectOfType<MeshPicker>();
         meshPicker.OnPrimaryVertexSelected = OnPrimaryVertexSelected;
         meshPicker.OnSecondaryVertexSelected = OnSecondaryVertexSelected;
+        meshPicker.OnSelectedVerticesCleared = OnSelectedVerticesCleared;
     }
 
     private void OnPrimaryVertexSelected(Vector3 vertexPosition, Transform worldTransform, MeshData meshData)
@@ -47,6 +48,15 @@ public class PathFinder : MonoBehaviour
 
         IsPathEnded = true;
         IsPathDirty = true;
+    }
+
+    private void OnSelectedVerticesCleared()
+    {
+        IsPathStarted = false;
+        IsPathEnded = false;
+        Path = null;
+        SmoothedPath = null;
+
     }
 
     // Update is called once per frame
@@ -79,9 +89,12 @@ public class PathFinder : MonoBehaviour
         Vector3 previousVertex = path[0];
         foreach (Vector3 currentVertex in path)
         {
+            //Vector3 lineShift = Vector3.up * 0.1f;
+            Vector3 lineShift = Vector3.zero;
+
             Debug.DrawLine(
-                WorldTransform.TransformPoint(previousVertex + Vector3.up * 0.1f),
-                WorldTransform.TransformPoint(currentVertex + Vector3.up * 0.1f),
+                WorldTransform.TransformPoint(previousVertex + lineShift),
+                WorldTransform.TransformPoint(currentVertex + lineShift),
                 color);
 
             previousVertex = currentVertex;
@@ -106,7 +119,7 @@ public class PathFinder : MonoBehaviour
         {
             foreach (Vector3 currentVertex in Path)
             {
-                Gizmos.color = Color.blue;
+                Gizmos.color = Color.white;
                 Gizmos.DrawSphere(WorldTransform.TransformPoint(currentVertex), 0.2f);
             }
         }
@@ -157,6 +170,9 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
+            Vector3 previousNodeVertex;
+            parents.TryGetValue(currentNode.Vertex, out previousNodeVertex);
+
             foreach (Vector3 vertex in terrainGraph.GetNeighborVertices(currentNode.Vertex))
             {
                 bool isNewNode;
@@ -169,7 +185,7 @@ public class PathFinder : MonoBehaviour
                 }
 
                 // Update costs
-                nextNode.GCost = currentNode.GCost + terrainGraph.GetCost(currentNode.Vertex, nextNode.Vertex);
+                nextNode.GCost = currentNode.GCost + terrainGraph.GetCost(previousNodeVertex, currentNode.Vertex, nextNode.Vertex);
                 nextNode.HCost = GetHeuristic(nextNode.Vertex, EndVertex);
 
                 if (isNewNode)
