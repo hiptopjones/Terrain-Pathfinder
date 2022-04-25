@@ -8,9 +8,14 @@ using UnityEngine;
 
 public class PathFinder : MonoBehaviour
 {
+    // Start position of the path, local to the terrain mesh
     private Vector3 StartVertex { get; set; }
+
+    // End position of the path, local to the terrain mesh
     private Vector3 EndVertex { get; set; }
 
+    // Assumes that the start and end are in the same terrain mesh
+    // or at least that the terrain meshes have the same world transform
     private Transform WorldTransform { get; set; }
     private MeshData MeshData { get; set; }
 
@@ -89,12 +94,9 @@ public class PathFinder : MonoBehaviour
         Vector3 previousVertex = path[0];
         foreach (Vector3 currentVertex in path)
         {
-            //Vector3 lineShift = Vector3.up * 0.1f;
-            Vector3 lineShift = Vector3.zero;
-
             Debug.DrawLine(
-                WorldTransform.TransformPoint(previousVertex + lineShift),
-                WorldTransform.TransformPoint(currentVertex + lineShift),
+                WorldTransform.TransformPoint(previousVertex),
+                WorldTransform.TransformPoint(currentVertex),
                 color);
 
             previousVertex = currentVertex;
@@ -149,6 +151,7 @@ public class PathFinder : MonoBehaviour
         {
             AStarGraphNode currentNode = openNodes.RemoveMin();
             closedNodes[currentNode.Vertex] = currentNode;
+            currentNode.IsClosed = true; // Used for drawing
 
             if (currentNode.Vertex == EndVertex)
             {
@@ -184,23 +187,30 @@ public class PathFinder : MonoBehaviour
                     continue;
                 }
 
-                // Update costs
-                nextNode.GCost = currentNode.GCost + terrainGraph.GetCost(previousNodeVertex, currentNode.Vertex, nextNode.Vertex);
-                nextNode.HCost = GetHeuristic(nextNode.Vertex, EndVertex);
+                // Calculate cost from start to here
+                float gCost = currentNode.GCost + terrainGraph.GetCost(previousNodeVertex, currentNode.Vertex, nextNode.Vertex);
 
                 if (isNewNode)
                 {
+                    nextNode.GCost = gCost;
+                    nextNode.HCost = GetHeuristic(nextNode.Vertex, EndVertex);
+
                     // Add this node for consideration
                     openNodes.Add(nextNode);
+
+                    // Keep track of how we got here
+                    parents[nextNode.Vertex] = currentNode.Vertex;
                 }
-                else
+                else if (nextNode.GCost > gCost)
                 {
+                    nextNode.GCost = gCost;
+
                     // Reorder this node in the open list
                     openNodes.Update(nextNode);
-                }
 
-                // Keep track of how we got here
-                parents[nextNode.Vertex] = currentNode.Vertex;
+                    // Keep track of how we got here
+                    parents[nextNode.Vertex] = currentNode.Vertex;
+                }
             }
         }
     }
@@ -242,6 +252,8 @@ public class PathFinder : MonoBehaviour
                 return GCost + HCost;
             }
         }
+
+        public bool IsClosed { get; set; }
 
         // IComparable
         public int CompareTo(AStarGraphNode other)

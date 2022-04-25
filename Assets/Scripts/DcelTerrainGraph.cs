@@ -13,10 +13,14 @@ public class DcelTerrainGraph : ITerrainGraph
         VertexMapping = vertexMapping;
     }
 
-    public float GetCost(Vector3 a, Vector3 b)
+    public float GetCost(Vector3 previousPosition, Vector3 currentPosition, Vector3 nextPosition)
     {
-        float rise = Mathf.Abs(a.y - b.y);
-        float run = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
+        // NOTE: Ignores previous position
+
+        float rise = Mathf.Abs(currentPosition.y - nextPosition.y);
+        float run = Mathf.Sqrt(
+            (currentPosition.x - nextPosition.x) * (currentPosition.x - nextPosition.x) +
+            (currentPosition.z - nextPosition.z) * (currentPosition.z - nextPosition.z));
 
         float slope = rise / run;
         float scaledSlope = slope * 10;
@@ -39,19 +43,19 @@ public class DcelTerrainGraph : ITerrainGraph
         Vertex vertex = VertexMapping[position];
         HalfEdge currentEdge = vertex.IncidentEdge;
 
-        HashSet<Vector3> neighbors = new HashSet<Vector3>();
+        HashSet<Vector3> neighborVertices = new HashSet<Vector3>();
 
         // NOTE: This may not enumerate all edges for vertices along the boundary
-        while (neighbors.Add(currentEdge.Next.Origin.Coordinates))
+        while (neighborVertices.Add(currentEdge.Next.Origin.Coordinates))
         {
-            Vector3 neighbor = currentEdge.Next.Origin.Coordinates;
-            yield return neighbor;
+            Vector3 neighborVertex = currentEdge.Next.Origin.Coordinates;
+            yield return neighborVertex;
 
             if (recurseCount > 0)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
+                foreach (Vector3 extendedNeighborVertex in GetNeighborVertices(neighborVertex, recurseCount - 1))
                 {
-                    yield return extendedNeighbor;
+                    yield return extendedNeighborVertex;
                 }
             }
 

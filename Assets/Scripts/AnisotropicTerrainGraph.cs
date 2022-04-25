@@ -73,7 +73,7 @@ public class AnisotropicTerrainGraph : ITerrainGraph
         return CalculateGcd(b, r);
     }
 
-    public float GetCost(Vector3 a, Vector3 b)
+    public float GetCost(Vector3 previousPosition, Vector3 currentPosition, Vector3 nextPosition)
     {
         // Basic movement cost formula from "Extensions to least cost path algorithms for roadway planning"
         // movement cost = surface distance * (average cell cost + slope angle * slope weight)
@@ -82,12 +82,17 @@ public class AnisotropicTerrainGraph : ITerrainGraph
         // slope angle = arctan(height distance / grid distance)
         // slope weight = steeper slopes are significantly more costly, and slopes over a threshold are impassable.
 
-        float surfaceDistance = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+        float surfaceDistance = Mathf.Sqrt(
+            (currentPosition.x - nextPosition.x) * (currentPosition.x - nextPosition.x) +
+            (currentPosition.y - nextPosition.y) * (currentPosition.y - nextPosition.y) + 
+            (currentPosition.z - nextPosition.z) * (currentPosition.z - nextPosition.z));
 
         float averageCellCost = 1;
 
-        float rise = Mathf.Abs(a.y - b.y);
-        float run = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
+        float rise = Mathf.Abs(currentPosition.y - nextPosition.y);
+        float run = Mathf.Sqrt(
+            (currentPosition.x - nextPosition.x) * (currentPosition.x - nextPosition.x) +
+            (currentPosition.z - nextPosition.z) * (currentPosition.z - nextPosition.z));
         float slopeAngle = Mathf.Abs(Mathf.Atan(rise / run)) * Mathf.Rad2Deg;
 
         float slopeWeight;
@@ -108,7 +113,33 @@ public class AnisotropicTerrainGraph : ITerrainGraph
             slopeWeight = 0;
         }
 
-        float movementCost = surfaceDistance * (averageCellCost + slopeAngle * slopeWeight);
+        Vector3 currentDirection = currentPosition - previousPosition;
+        Vector3 nextDirection = nextPosition - currentPosition;
+        float turnAngle = Vector3.Angle(currentDirection, nextDirection);
+
+        float turnWeight;
+        if (turnAngle > 90)
+        {
+            turnWeight = 8;
+        }
+        else if (turnAngle > 45)
+        {
+            turnWeight = 4;
+        }
+        else if (turnAngle > 30)
+        {
+            turnWeight = 2;
+        }
+        else if (turnAngle > 15)
+        {
+            turnWeight = 1;
+        }
+        else
+        {
+            turnWeight = 0;
+        }
+
+        float movementCost = surfaceDistance * (averageCellCost + slopeAngle * slopeWeight) + turnWeight;
         return movementCost;
     }
 

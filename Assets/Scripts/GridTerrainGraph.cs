@@ -8,7 +8,7 @@ public class GridTerrainGraph : ITerrainGraph
     private int Height { get; }
     private Vector3[] Vertices { get; }
 
-    private Vector3[] Directions { get; }
+    private Vector3[] NeighborOffsets { get; }
 
     public GridTerrainGraph(int width, int height, Vector3[] vertices)
     {
@@ -16,23 +16,27 @@ public class GridTerrainGraph : ITerrainGraph
         Height = height;
         Vertices = vertices;
 
-        Directions = new Vector3[]
+        NeighborOffsets = new Vector3[]
         {
             new Vector3(1, 0, 0), // right
-            new Vector3(0, 0, width), // up
+            new Vector3(0, 0, 1), // up
             new Vector3(-1, 0, 0), // left
-            new Vector3(0, 0, -width), // down
-            new Vector3(1, 0, width), // up-right
-            new Vector3(-1, 0, width), // up-left
-            new Vector3(1, 0, -width), // down-right
-            new Vector3(-1, 0, -width), // down-left
+            new Vector3(0, 0, -1), // down
+            new Vector3(1, 0, 1), // up-right
+            new Vector3(-1, 0, 1), // up-left
+            new Vector3(1, 0, -1), // down-right
+            new Vector3(-1, 0, -1), // down-left
         };
     }
 
-    public float GetCost(Vector3 a, Vector3 b)
+    public float GetCost(Vector3 previousPosition, Vector3 currentPosition, Vector3 nextPosition)
     {
-        float rise = Mathf.Abs(a.y - b.y);
-        float run = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.z - b.z) * (a.z - b.z));
+        // NOTE: Ignores previous position
+
+        float rise = Mathf.Abs(currentPosition.y - nextPosition.y);
+        float run = Mathf.Sqrt(
+            (currentPosition.x - nextPosition.x) * (currentPosition.x - nextPosition.x) + 
+            (currentPosition.z - nextPosition.z) * (currentPosition.z - nextPosition.z));
 
         float slope = rise / run;
         float scaledSlope = slope * 10;
@@ -52,134 +56,26 @@ public class GridTerrainGraph : ITerrainGraph
 
     private IEnumerable<Vector3> GetNeighborVertices(Vector3 position, int recurseCount)
     {
-        // X and Z are the coordinates of the height map, Y is the height value
-        int index = Mathf.RoundToInt(position.z) * Width + Mathf.RoundToInt(position.x);
-
-        // TODO: Check if passable before including
-
-        // TODO: Given the origin, which is top vs. bottom ??
-
-        // CARDINAL DIRECITONS
-
-        if (position.x > 0)
+        foreach (Vector3 neighborOffset in NeighborOffsets)
         {
-            int leftIndex = index - 1;
-            Vector3 neighbor = Vertices[leftIndex];
-            yield return neighbor;
+            // X and Z are the coordinates of the height map, Y is the height value
+            int neighborX = Mathf.RoundToInt(position.x) + Mathf.RoundToInt(neighborOffset.x);
+            int neighborZ = Mathf.RoundToInt(position.z) + Mathf.RoundToInt(neighborOffset.z);
 
-            if (recurseCount > 0)
+            // Test whether the direction is valid
+            if (neighborX >= 0 && neighborX <= Width - 1 &&
+                neighborZ >= 0 && neighborZ <= Height - 1)
             {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount -1))
+                int neighborIndex = neighborZ * Width + neighborX;
+                Vector3 neighborVertex = Vertices[neighborIndex];
+                yield return neighborVertex;
+
+                if (recurseCount > 0)
                 {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.x < Width - 1)
-        {
-            int rightIndex = index + 1;
-            Vector3 neighbor = Vertices[rightIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.z > 0)
-        {
-            int topIndex = index - Width;
-            Vector3 neighbor = Vertices[topIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.z < Height - 1)
-        {
-            int bottomIndex = index + Width;
-            Vector3 neighbor = Vertices[bottomIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-
-        }
-
-        // DIAGONAL DIRECTIONS
-
-        if (position.x > 0 && position.z > 0)
-        {
-            int topleftIndex = index - Width - 1;
-            Vector3 neighbor = Vertices[topleftIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.x < Width - 1 && position.z > 0)
-        {
-            int topRightIndex = index - Width + 1;
-            Vector3 neighbor = Vertices[topRightIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.x > 0 && position.z < Height - 1)
-        {
-            int bottomLeftIndex = index + Width - 1;
-            Vector3 neighbor = Vertices[bottomLeftIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
-                }
-            }
-        }
-
-        if (position.x < Width - 1 && position.z < Height - 1)
-        {
-            int bottomIndex = index + Width + 1;
-            Vector3 neighbor = Vertices[bottomIndex];
-            yield return neighbor;
-
-            if (recurseCount > 0)
-            {
-                foreach (Vector3 extendedNeighbor in GetNeighborVertices(neighbor, recurseCount - 1))
-                {
-                    yield return extendedNeighbor;
+                    foreach (Vector3 extendedNeighborVertex in GetNeighborVertices(neighborVertex, recurseCount - 1))
+                    {
+                        yield return extendedNeighborVertex;
+                    }
                 }
             }
         }
