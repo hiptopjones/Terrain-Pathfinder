@@ -113,30 +113,33 @@ public class AnisotropicTerrainGraph : ITerrainGraph
             slopeWeight = 0;
         }
 
-        Vector3 currentDirection = currentPosition - previousPosition;
-        Vector3 nextDirection = nextPosition - currentPosition;
-        float turnAngle = Vector3.Angle(currentDirection, nextDirection);
+        float turnWeight = 0;
+        if (previousPosition != Vector3.zero)
+        {
+            Vector3 currentDirection = currentPosition - previousPosition;
+            Vector3 nextDirection = nextPosition - currentPosition;
+            float turnAngle = Vector3.Angle(currentDirection, nextDirection);
 
-        float turnWeight;
-        if (turnAngle > 90)
-        {
-            turnWeight = 8;
-        }
-        else if (turnAngle > 45)
-        {
-            turnWeight = 4;
-        }
-        else if (turnAngle > 30)
-        {
-            turnWeight = 2;
-        }
-        else if (turnAngle > 15)
-        {
-            turnWeight = 1;
-        }
-        else
-        {
-            turnWeight = 0;
+            if (turnAngle > 90)
+            {
+                turnWeight = 8;
+            }
+            else if (turnAngle > 45)
+            {
+                turnWeight = 4;
+            }
+            else if (turnAngle > 30)
+            {
+                turnWeight = 2;
+            }
+            else if (turnAngle > 15)
+            {
+                turnWeight = 1;
+            }
+            else
+            {
+                turnWeight = 0;
+            }
         }
 
         float movementCost = surfaceDistance * (averageCellCost + slopeAngle * slopeWeight) + turnWeight;
