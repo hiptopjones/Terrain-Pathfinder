@@ -24,6 +24,7 @@ public class PathFinder : MonoBehaviour
     private AStarAlgorithm Algorithm { get; set; }
 
     private List<Vector3> Path { get; set; }
+    private List<Vector3> SmoothedPath { get; set; }
 
     // Start is called before the first frame update
     void Start()
@@ -57,6 +58,7 @@ public class PathFinder : MonoBehaviour
         IsPathStarted = false;
         IsPathEnded = false;
         Path = null;
+        SmoothedPath = null;
 
         if (Algorithm != null)
         {
@@ -86,6 +88,7 @@ public class PathFinder : MonoBehaviour
         if (Algorithm.IsPathValid && Path == null)
         {
             Path = Algorithm.Path;
+            SmoothedPath = SplineSmooth.Smooth(Path);
         }
     }
 
@@ -109,6 +112,21 @@ public class PathFinder : MonoBehaviour
                 WorldTransform.TransformPoint(StartVertex),
                 WorldTransform.TransformPoint(EndVertex),
                 Color.yellow);
+        }
+
+        if (SmoothedPath != null)
+        {
+            Gizmos.color = Color.cyan;
+
+            Vector3 previousVertex = SmoothedPath.First();
+            foreach (Vector3 currentVertex in SmoothedPath.Skip(1))
+            {
+                Gizmos.DrawLine(
+                    WorldTransform.TransformPoint(previousVertex),
+                    WorldTransform.TransformPoint(currentVertex));
+
+                previousVertex = currentVertex;
+            }
         }
     }
 }

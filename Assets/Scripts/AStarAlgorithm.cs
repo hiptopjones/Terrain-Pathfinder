@@ -35,6 +35,7 @@ public class AStarAlgorithm : MonoBehaviour
 
     // Coroutine advancement variables
     private bool IsKeyPressed { get; set; }
+    private bool IsNextFrame { get; set; }
 
     // Start is called before the first frame update
     void Start()
@@ -45,6 +46,7 @@ public class AStarAlgorithm : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        IsNextFrame = true;
         IsKeyPressed = false;
 
         if (Input.GetKey(KeyCode.Space))
@@ -91,26 +93,30 @@ public class AStarAlgorithm : MonoBehaviour
             Gizmos.DrawCube(WorldTransform.TransformPoint(node.Vertex), cubeSize);
         }
 
-        AStarGraphNode previousNode = null;
-        foreach (AStarGraphNode currentNode in nodePath)
+        // Only draw this stuff while generating the path
+        if (!IsPathValid)
         {
-            if (previousNode != null)
+            AStarGraphNode previousNode = null;
+            foreach (AStarGraphNode currentNode in nodePath)
             {
-                Gizmos.color = IsPathValid ? Color.magenta : Color.green;
-                Gizmos.DrawLine(
-                    WorldTransform.TransformPoint(previousNode.Vertex),
-                    WorldTransform.TransformPoint(currentNode.Vertex));
+                if (previousNode != null)
+                {
+                    Gizmos.color = IsPathValid ? Color.magenta : Color.green;
+                    Gizmos.DrawLine(
+                        WorldTransform.TransformPoint(previousNode.Vertex),
+                        WorldTransform.TransformPoint(currentNode.Vertex));
+                }
+
+                previousNode = currentNode;
             }
 
-            previousNode = currentNode;
-        }
-
-        if (!IsPathValid && CurrentNode != null && NeighborNode != null)
-        {
-            Gizmos.color = Color.gray;
-            Gizmos.DrawLine(
-                WorldTransform.TransformPoint(CurrentNode.Vertex),
-                WorldTransform.TransformPoint(NeighborNode.Vertex));
+            if (CurrentNode != null && NeighborNode != null)
+            {
+                Gizmos.color = Color.gray;
+                Gizmos.DrawLine(
+                    WorldTransform.TransformPoint(CurrentNode.Vertex),
+                    WorldTransform.TransformPoint(NeighborNode.Vertex));
+            }
         }
     }
 
@@ -222,7 +228,12 @@ public class AStarAlgorithm : MonoBehaviour
 
     private bool CanStepForward()
     {
-        return IsKeyPressed;
+        bool canStepForward = IsKeyPressed || IsNextFrame;
+
+        IsKeyPressed = false;
+        IsNextFrame = false;
+
+        return canStepForward;
     }
 
     private AStarGraphNode GetOrCreateNode(Dictionary<Vector3, AStarGraphNode> nodes, Vector3 vertex, out bool isNewNode)
